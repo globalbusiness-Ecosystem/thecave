@@ -3,13 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 const PI_API = "https://api.testnet.minepi.com/v2";
 const PI_KEY = process.env.PI_API_KEY || "";
 
-export async function POST(req: NextRequest, { params }: { params: { paymentId: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ paymentId: string }> }
+) {
+  const { paymentId } = await params;
   const body = await req.json().catch(() => ({}));
   const { action, txid } = body;
 
   const endpoint = action === "complete"
-    ? `${PI_API}/payments/${params.paymentId}/complete`
-    : `${PI_API}/payments/${params.paymentId}/approve`;
+    ? `${PI_API}/payments/${paymentId}/complete`
+    : `${PI_API}/payments/${paymentId}/approve`;
 
   const res = await fetch(endpoint, {
     method: "POST",
