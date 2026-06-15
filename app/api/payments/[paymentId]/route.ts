@@ -8,12 +8,10 @@ export async function GET(
   { params }: { params: Promise<{ paymentId: string }> }
 ) {
   const { paymentId } = await params;
-  console.log("GET payment:", paymentId, "key length:", PI_KEY.length);
   const res = await fetch(`${PI_API}/payments/${paymentId}`, {
     headers: { Authorization: `Key ${PI_KEY}` },
   });
   const data = await res.json();
-  console.log("GET response:", res.status, JSON.stringify(data));
   return NextResponse.json(data, { status: res.status });
 }
 
@@ -24,10 +22,17 @@ export async function POST(
   const { paymentId } = await params;
   const body = await req.json().catch(() => ({}));
   const { action, txid } = body;
-  console.log("POST payment:", paymentId, "action:", action, "key length:", PI_KEY.length);
-  const endpoint = action === "complete"
+
+  const url = new URL(req.url);
+  const urlAction = url.searchParams.get("action");
+  const finalAction = action || urlAction;
+
+  const isComplete = finalAction === "complete" || !!txid;
+
+  const endpoint = isComplete
     ? `${PI_API}/payments/${paymentId}/complete`
     : `${PI_API}/payments/${paymentId}/approve`;
+
   const res = await fetch(endpoint, {
     method: "POST",
     headers: {
@@ -36,7 +41,7 @@ export async function POST(
     },
     body: txid ? JSON.stringify({ txid }) : undefined,
   });
+
   const data = await res.json();
-  console.log("POST response:", res.status, JSON.stringify(data));
   return NextResponse.json(data, { status: res.status });
 }
