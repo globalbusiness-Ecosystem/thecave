@@ -1,0 +1,5 @@
+export const PRODUCT_CONFIG = {
+  PRODUCT_69b4c1ca15be8dce49fb05d6: "69b4c1ca15be8dce49fb05d6",
+  PRODUCT_6a2fddaa03891d2659fd4178: "6a2fddaa03891d2659fd4178",
+  PRODUCT_6a2fe07641829566d06b4c63: "6a2fe07641829566d06b4c63",
+} as const;
