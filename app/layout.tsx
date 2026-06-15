@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   title: "Made with App Studio",
   description:
     "TheCave — antiques & collectibles marketplace on Pi Network. Buy, sell and discover valuable vintage items worldwide.",
-    generator: 'v0.app'
+  generator: "v0.app",
 };
 
 export default function RootLayout({
@@ -31,7 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${tajawal.variable}`}>
-      <head />
+      <head>
+        <script src="https://sdk.minepi.com/pi-sdk.js" async></script>
+      </head>
       <body>
         <AppWrapper>{children}</AppWrapper>
       </body>
