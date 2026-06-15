@@ -12,14 +12,7 @@ interface AuctionBidModalProps {
   onSubmit: (bidAmount: number) => void;
 }
 
-export function AuctionBidModal({
-  isOpen,
-  itemName,
-  currentBid,
-  minNextBid,
-  onClose,
-  onSubmit,
-}: AuctionBidModalProps) {
+export function AuctionBidModal({ isOpen, itemName, currentBid, minNextBid, onClose, onSubmit }: AuctionBidModalProps) {
   const [bidAmount, setBidAmount] = useState<string>(minNextBid.toString());
   const [error, setError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,17 +31,20 @@ export function AuctionBidModal({
         { amount: bid, memo: `Bid on ${itemName}`, metadata: { itemName, bidAmount: bid } },
         {
           onReadyForServerApproval: async (paymentId: string) => {
-            await fetch(`/api/payments/${paymentId}/approve`, {
+            const res = await fetch(`/api/payments/${paymentId}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "approve" }),
             });
+            console.log("approve status:", res.status);
           },
           onReadyForServerCompletion: async (paymentId: string, txid: string) => {
-            await fetch(`/api/payments/${paymentId}/complete`, {
+            const res = await fetch(`/api/payments/${paymentId}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ txid }),
+              body: JSON.stringify({ action: "complete", txid }),
             });
+            console.log("complete status:", res.status);
             onSubmit(bid);
             onClose();
           },
@@ -64,11 +60,11 @@ export function AuctionBidModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 transition-opacity" style={{ backgroundColor: "#0A0804CC" }} onClick={onClose} />
+      <div className="fixed inset-0 z-40" style={{ backgroundColor: "#0A0804CC" }} onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm mx-4 rounded-3xl overflow-hidden" style={{ backgroundColor: "#1A1610", border: "1px solid #C9A84C44" }}>
         <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: "#2A2015" }}>
           <h2 className="font-serif font-bold text-lg" style={{ color: "#F0E8D6" }}>Place Your Bid</h2>
-          <button onClick={onClose} className="p-1 hover:opacity-70 transition-opacity" style={{ color: "#8A7A60" }}><X size={20} /></button>
+          <button onClick={onClose} className="p-1 hover:opacity-70" style={{ color: "#8A7A60" }}><X size={20} /></button>
         </div>
         <div className="p-5 space-y-4">
           <div>
@@ -86,16 +82,9 @@ export function AuctionBidModal({
             <label className="font-sans text-xs mb-2 block" style={{ color: "#8A7A60" }}>Your Bid in Pi</label>
             <div className="flex items-center gap-2">
               <span className="font-serif font-bold text-lg" style={{ color: "#C9A84C" }}>π</span>
-              <input
-                type="number"
-                value={bidAmount}
-                onChange={(e) => { setBidAmount(e.target.value); setError(""); }}
-                placeholder={minNextBid.toString()}
-                min={minNextBid}
-                step="0.1"
+              <input type="number" value={bidAmount} onChange={(e) => { setBidAmount(e.target.value); setError(""); }} placeholder={minNextBid.toString()} min={minNextBid} step="0.1"
                 className="flex-1 px-3 py-2 rounded-lg font-sans font-bold text-sm focus:outline-none"
-                style={{ backgroundColor: "#0A080488", border: "1px solid #C9A84C44", color: "#F0E8D6" }}
-              />
+                style={{ backgroundColor: "#0A080488", border: "1px solid #C9A84C44", color: "#F0E8D6" }} />
             </div>
             <p className="font-sans text-xs mt-1" style={{ color: "#8A7A60" }}>Minimum bid: π {minNextBid}</p>
           </div>
