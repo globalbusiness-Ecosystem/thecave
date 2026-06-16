@@ -43,32 +43,34 @@ export function PiPurchaseButton({
     setErrorMessage("");
 
     try {
-      if (!window.Pi) throw new Error("Pi Network SDK not available");
+      if (!(window as any).Pi) throw new Error("Pi Network SDK not available");
 
-      window.Pi.createPayment(
+      (window as any).Pi.createPayment(
         {
           amount: product.price_in_pi,
           memo: `Purchase: ${product.name}`,
           metadata: { productId: product.id },
         },
         {
-          onReadyForServerApproval: async (paymentId: string) => {
-            await fetch(`/api/payments/${paymentId}`, {
+          onReadyForServerApproval: (paymentId: string) => {
+            // Fire and forget - no await to avoid timeout
+            fetch(`/api/payments/${paymentId}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ action: "approve" }),
-            });
+            }).catch(console.error);
           },
-          onReadyForServerCompletion: async (paymentId: string, txid: string) => {
-            await fetch(`/api/payments/${paymentId}`, {
+          onReadyForServerCompletion: (paymentId: string, txid: string) => {
+            fetch(`/api/payments/${paymentId}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ action: "complete", txid }),
-            });
-            setStatus("success");
-            setIsLoading(false);
-            if (onSuccess) onSuccess(product.id, paymentId, txid);
-            setTimeout(() => setStatus("idle"), 2000);
+            }).then(() => {
+              setStatus("success");
+              setIsLoading(false);
+              if (onSuccess) onSuccess(product.id, paymentId, txid);
+              setTimeout(() => setStatus("idle"), 2000);
+            }).catch(console.error);
           },
           onCancel: () => {
             setErrorMessage("Purchase cancelled.");
